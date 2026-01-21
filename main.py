@@ -394,7 +394,7 @@ def main(page: ft.Page):
             new_rest,
             new_content,
             new_rounds
-        ], height=400),
+        ], scroll='adaptive'),
         actions=[
             save_btn,
             ft.TextButton('Cancel', on_click=close_dialog),
@@ -427,7 +427,7 @@ def main(page: ft.Page):
             edit_rest,
             edit_content,
             edit_rounds
-        ], height=400),
+        ], scroll='adaptive'),
         actions=[
             save_btn_edit,
             ft.TextButton('Cancel', on_click=close_edit_dialog)
