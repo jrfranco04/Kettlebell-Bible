@@ -1,0 +1,380 @@
+[
+    {
+        "id": 1,
+        "title": "Swing/Clean/Thruster",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "90 Seconds",
+        "content": "KB Swing: 3 reps \nKB Clean: 3 reps \nThrusters: 3 reps \nSwitch",
+        "rounds": "6 Rounds"
+    },
+    {
+        "id": 2,
+        "title": "Row/Swing/Clean/Squat/Thruster/Snatch",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "90 Seconds",
+        "content": "Bent Over Row: 6 reps \nKB Swing: 5 reps \nKB Clean: 4 reps \nFront Rack Squats: 3 reps \nThrusters: 2 reps \nSnatch: 1 rep",
+        "rounds": "4-5 Rounds"
+    },
+    {
+        "id": 3,
+        "title": "Swing/High Pull/Snatch",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "90 Seconds",
+        "content": "KB Swing: 1 rep \nKB High Pull: 1 rep \nSnatch: 1 rep \n Switch \nRepeat this cycle 3x",
+        "rounds": "7 Rounds"
+    },
+    {
+        "id": 4,
+        "title": "Swing Squat/Row/Clean/Lunge",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "60 Seconds",
+        "content": "Swing Squat: 10 reps \nAlternating KB Swing: 10 reps \n Bent Over Row: 5 reps/side \nClean and Press: 5 reps/side \nOverhead lunge: 5 reps/side",
+        "rounds": "5 Rounds"
+    },
+    {
+        "id": 5,
+        "title": "Core Exercises",
+        "type": "KB Core Workout",
+        "config": "Single KB",
+        "rest": "As needed",
+        "content": "KB Plank Drag: 3x10 \nKB Windmill: 3x6 \nHip 2 Halo: 3x10/side \nSuitcase Stationary March: 3x :30/side \nKB Liftovers: 3x20 \nNorth-South Plank: 3x10 \nOverhead Stationary March: 3x :30 seconds",
+        "rounds": "5 Rounds"
+    },
+    {
+        "id": 6,
+        "title": "Swing/High Pull/Snatch v2",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "60 Seconds",
+        "content": "KB Swing: 4 reps \nHigh Pull: 3 reps \n Snatch: 2 reps \n Switch",
+        "rounds": "7 Rounds"
+    },
+    {
+        "id": 7,
+        "title": "Row/Clean/Front Squat",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "120 Seconds",
+        "content": "Bent Over Row: 6 reps \nSingle Arm Bent Over Row: 5 reps \nFront Squat: 4 reps \n Switch",
+        "rounds": "7 Rounds"
+    },
+    {
+        "id": 8,
+        "title": "Clean/Push Press/Thruster",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "90 Seconds",
+        "content": "KB Clean: 4 reps \nPush Press: 3 reps \nThruster: 2 reps \nSwitch",
+        "rounds": "7 Rounds"
+    },
+    {
+        "id": 9,
+        "title": "Row/Clean/Push Press",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "90 Seconds",
+        "content": "Bent Over Row: 6 reps \nKB Clean: 5 reps \nPush Press: 4 reps \nSwitch",
+        "rounds": "6 Rounds"
+    },
+    {
+        "id": 10,
+        "title": "KB Upper Body Push",
+        "type": "KB Workout",
+        "config": "Single KB, Double KB",
+        "rest": "90 Seconds",
+        "content": "Half Kneeling Kickstand Press: 6 reps/side \nAlternating Bridged Floor Press: 8 reps/side \nDips: 12 reps \nKB Push-up: 12 reps",
+        "rounds": "4 Rounds"
+    },
+    {
+        "id": 11,
+        "title": "Row/Swing/Thruster",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "90 Seconds",
+        "content": "Bent Over Row: 5 reps \nKB Swing: 5 reps \nThruster: 5 reps \nSwitch",
+        "rounds": "7 Rounds"
+    },
+    {
+        "id": 12,
+        "title": "Swing/Deadlift/Squat",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "90 Seconds",
+        "content": "KB Swing: 5 reps \nDeadlift High Pull: 4 reps \nGoblet Squat: 3 reps/side",
+        "rounds": "7 Rounds"
+    },
+    {
+        "id": 13,
+        "title": "KB Upper Body Pull",
+        "type": "KB Workout",
+        "config": "Single KB",
+        "rest": "As needed",
+        "content": "KB Swing 3x20 \nWaiter Clean and Press: 3x8/side \nWeighted Pull-up: 3x8 \nKB Snatch 3x6/side \nHip 2 Halo: 3x6/side \nOverhead Stationary March 3x :30",
+        "rounds": ""
+    },
+    {
+        "id": 14,
+        "title": "Clean/Swing/Thruster/Row",
+        "type": "KB Workout",
+        "config": "Double KB",
+        "rest": "As needed",
+        "content": "KB Clean and Press: 10 reps \nKB Swing: 15 reps \nThruster: 10 reps \nBent Over Row: 15 reps",
+        "rounds": "3-5 Rounds"
+    },
+    {
+        "id": 15,
+        "title": "Row/Russian/American",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "90 Seconds",
+        "content": "Ballistic Row: 4 reps \nRussian Swing: 5 reps \nAmerican Swing: 6 reps \nRussian Swing: 5 reps \nBallistic Row: 4 reps",
+        "rounds": "5 Rounds"
+    },
+    {
+        "id": 16,
+        "title": "Swing/Snatch/Lunge",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "90 Seconds",
+        "content": "KB Swing: 3 reps \nKB Snatch 3 reps \nOverhead Lunge: 3 reps",
+        "rounds": "6 Rounds"
+    },
+    {
+        "id": 17,
+        "title": "Squat Clean/Squat/Lunge",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "90 Seconds",
+        "content": "Two Handed Squat Clean: 7 reps \nGoblet Squat: 6 reps \nFront Rack Lunge: 5 reps/side",
+        "rounds": "5 Rounds"
+    },
+    {
+        "id": 18,
+        "title": "Swing/Clean/Snatch",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "90 Seconds",
+        "content": "KB Swing: 5 reps \nKB Clean: 4 reps \nSnatch: 3 reps",
+        "rounds": "6 Rounds"
+    },
+    {
+        "id": 19,
+        "title": "Swing/Gunslinger/Clean and Press",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "90 Seconds",
+        "content": "Swing: 5 reps \nGunslinger: 4 reps \nKB Clean and Press: 3 reps",
+        "rounds": "5 Rounds"
+    },
+    {
+        "id": 20,
+        "title": "KB Upper Body Push v2",
+        "type": "KB Workout",
+        "config": "Single KB, Double KB",
+        "rest": "As needed",
+        "content": "Tactical Clean and Press: 4x8 \nAlternating Z-Press: 4x12 \nWaiter Clean to Lunge: 4x8 \nBridge Floor Press: 4x12 \nKB Swings 4x20",
+        "rounds": ""
+    },
+    {
+        "id": 21,
+        "title": "Row/Swing/Clean/Push Press",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "90 Seconds",
+        "content": "Gorilla Row: 8 reps \nKB Swing: 6 reps \nKB Clean: 4 reps \nPush Press: 2 reps",
+        "rounds": "6 Rounds"
+    },
+    {
+        "id": 22,
+        "title": "Squat Clean Thruster/Clean and Jerk/Snatch",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "60 Seconds",
+        "content": "Squat Clean Thruster: 1 rep \nKB Clean and Jerk: 2 reps \nSnatch: 3 reps \nKB Clean and Jerk: 2 reps \nSquat Clean Thruster: 1 rep",
+        "rounds": "5 Rounds"
+    },
+    {
+        "id": 23,
+        "title": "Pull-up/Thruster/Swing/Push-up",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "90 Seconds",
+        "content": "Pull-up: 5 reps \nThruster: 5 reps \nKB Swing: 10 reps \nPush-up: 10 reps",
+        "rounds": "10 Rounds"
+    },
+    {
+        "id": 24,
+        "title": "KB Swing Pyramid",
+        "type": "KB Pyramid",
+        "config": "Single KB",
+        "rest": "As needed",
+        "content": "Russian Swing \nAmerican Swing \nGoblet Squat \nRep Scheme: 1-5-1",
+        "rounds": ""
+    },
+    {
+        "id": 25,
+        "title": "Swing/Squat Clean",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "90 Seconds",
+        "content": "KB Swing -> Squat Swing: 4 reps \nAmerican Swing: 4 reps \nClean to Squat: 4 reps \nAmerican Swing: 4 reps \nKB Swing -> Squad Swing: 4 reps",
+        "rounds": "4-5 Rounds"
+    },
+    {
+        "id": 26,
+        "title": "Push-Up/Row/Clean/Thruster/Snatch",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "120 Seconds",
+        "content": "Push-up: 5 reps \nBent Over Row: 4 reps \nKB Clean: 3 reps \nThruster: 2 reps \nSnatch: 1 rep",
+        "rounds": "6 Rounds"
+    },
+    {
+        "id": 27,
+        "title": "Barbell Workout",
+        "type": "E2MOM",
+        "config": "E2MOM",
+        "rest": "Remaining Time",
+        "content": "Every 2 Minutes: \nDeadlift: 3 reps \nHang Clean: 3 reps \n Front Squat: 3 reps \nBarbell Thruster: 3 reps \nBurpees: 7 reps",
+        "rounds": "12-20 Minutes"
+    },
+    {
+        "id": 28,
+        "title": "Row/Thruster/Press/Snatch/Push-Up",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "90 Seconds",
+        "content": "Bent Over Row: 3 reps \nThruster: 3 reps \nStrict Press: 3 reps \nSnatch: 3 reps \nPush-Up: 3 reps",
+        "rounds": "10 Rounds"
+    },
+    {
+        "id": 29,
+        "title": "Clean/Snatch/Front Squat/Farmer's Walk",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "90 Seconds",
+        "content": "KB Clean: 5 reps \nSnatch: 3 reps \nFront Rack Squat: 3 reps \nFarmer's Walk",
+        "rounds": "5 Rounds"
+    },
+    {
+        "id": 30,
+        "title": "Row/Clean/Snatch",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "90 Seconds",
+        "content": "Ballistic Row: 4 reps \nTactical KB Clean: 4 reps \nTactical Snatch: 4 reps",
+        "rounds": "6 Rounds"
+    },
+    {
+        "id": 31,
+        "title": "Dirty Dozen",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "90 Seconds",
+        "content": "KB Swing: 6 reps \nKB Clean: 6 reps \nFront Rack Squat: 12 reps \nKB Clean: 6 reps \nKB Swing: 6 reps",
+        "rounds": "3 Rounds"
+    },
+    {
+        "id": 32,
+        "title": "Clean/Kneeling Press/Swing/Push-Ups",
+        "type": "KB Workout",
+        "config": "Single KB",
+        "rest": "As needed",
+        "content": "KB Dead Clean: 5 reps/side \nHalf-Kneeling Press: 8 reps/side \nHand 2 Hand Swings: 10 reps/side \nPush-Ups: 15 reps",
+        "rounds": "7 Rounds"
+    },
+    {
+        "id": 33,
+        "title": "Swing/Snatch/Push Press",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "90 Seconds",
+        "content": "KB Swing: 3 reps \nSnatch: 3 reps \nPush Press: 3 reps \nSwitch",
+        "rounds": "6 Rounds"
+    },
+    {
+        "id": 34,
+        "title": "Row/Clean/Squat/Push Press",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "90 Seconds",
+        "content": "Bent Over Row \n Dead Clean \nSquat Clean \nPush Press \n4x \nSwitch",
+        "rounds": "5 Rounds"
+    },
+    {
+        "id": 35,
+        "title": "Arm/Leg Workout",
+        "type": "KB Workout",
+        "config": "Single KB, Double KB",
+        "rest": "As needed",
+        "content": "Super Set #1: \n Strict Press: 5 reps, then KB Swing: 12 reps \n Super Set #2: \nCossack Squat: 5 reps/side, then Two Handed Clean: 10 reps \n Super Set #3: \n Curls: 12 reps, then Tricep Extension: 12 reps",
+        "rounds": "#1: 5 Rounds \n #2: 5 Rounds \n #3: 4 Rounds"
+    },
+    {
+        "id": 36,
+        "title": "Swing/Squat Clean/Clean and Jerk",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "60 Seconds",
+        "content": "Alternating Swing: 6 reps \nTactical Squat Clean: 4 reps \nTactical Clean and Jerk: 2 reps",
+        "rounds": "5 Rounds"
+    },
+    {
+        "id": 37,
+        "title": "Snatch Workout",
+        "type": "KB Workout",
+        "config": "Single KB, Double KB, Mace",
+        "rest": "As needed",
+        "content": "Snatch: 5x10 reps/side \n\nCluster Set: \nDouble Front Squat: 5 reps \nMace 360: 15 reps/side \nFarmer's Walk: 50m",
+        "rounds": "Cluster Set: 5 Rounds"
+    },
+    {
+        "id": 38,
+        "title": "Clean and Press Workout",
+        "type": "KB Workout",
+        "config": "Single KB, Double KB",
+        "rest": "As needed",
+        "content": "Double KB Clean and Press: 6x5 reps \n\nCluster Set: \nGorilla Rows: 10 reps/side \nLateral Lunges: 5 reps/side \nHalf-Kneeling Windmill: 5 reps/side",
+        "rounds": "Cluster Set: 4 Rounds"
+    },
+    {
+        "id": 39,
+        "title": "Swing/Clean/Squat/Push-Up EMOM",
+        "type": "EMOM",
+        "config": "EMOM",
+        "rest": "Remaining Time",
+        "content": "KB Swing: 4 reps \nKB Clean: 4 reps \nFront Rack Squat: 4 reps \nPush-Up (with shoulder tap): 4 reps",
+        "rounds": "20 Minutes: \nEven Minutes - Left Side \nOdd Minutes - Right Side"
+    },
+    {
+        "id": 40,
+        "title": "Row/Swing/Squat Clean/Thruster",
+        "type": "KB Complex",
+        "config": "Double KB",
+        "rest": "90 Seconds",
+        "content": "Bent Over Row: 5 reps \nKB Swing: 4 reps \nKB Squat Clean: 3 reps \nThruster: 2 reps",
+        "rounds": "6 Rounds"
+    },
+    {
+        "id": 41,
+        "title": "Swing/Clean/Thruster/Snatch/Windmill",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "60 Seconds",
+        "content": "KB Swing: 1 rep \nTactical Clean: 1 rep \nThruster: 1 rep \nTactical Snatch: 1 rep \nWindmill: 1 rep \n2x/side \nSwitch",
+        "rounds": "9 Rounds"
+    },
+    {
+        "id": 42,
+        "title": "Heavy Snatch/Clean/Swing",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "90 Seconds",
+        "content": "Snatch: 1 rep \nKB Clean: 2 reps \nKB Swing: 3 reps \nSwitch",
+        "rounds": "5 Rounds"
+    }
+]
