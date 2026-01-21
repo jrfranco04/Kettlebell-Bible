@@ -18,15 +18,15 @@ Moreso, I wanted to give myself an easier way to view the workouts rather than s
 * **Storage:** JSON Flat-file database
 * **Version Control:** Git & Github
 
-##Installation:**
+**Installation:**
 1. Clone the repo:
-'''bash
-git clone
+'''bash \\
+git clone \\
 [https://github.com/jrfranco04/kettlebell-bible.git](https://github.com/jrfranco04/kettlebell-bible.git)
-
 2. Install dependencies:
-'''bash
+'''bash \\
 pip install flet
-
-3. Run the app
+4. Run the app
 flet run main.py
+
+
