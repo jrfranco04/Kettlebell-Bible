@@ -1,6 +1,6 @@
 # Kettlebell Bible 
 
-An Android (for now) only mobile workout logger built with Python using the Flet library.
+An Android only (for now) mobile workout logger built with Python using the Flet library.
 
 ## About
 The **Kettlebell Bible** is a minimalist workout app I designed because originally I kept all the workouts I accumulated over the years in my Notes app on my phone and I lived in constant fear that I would one day lose everything I had gathered.
