@@ -230,51 +230,59 @@ def main(page: ft.Page):
         return ft.View(
             route='/workout_detail',
             controls=[
-                ft.AppBar(title=ft.Text(workout.get('title', 'Untitled'))),
-                #Header Content
-                ft.Container(
-                    bgcolor=ft.Colors.PRIMARY_CONTAINER,
-                    padding=20,
-                    border_radius=10,
-                    content=ft.SelectionArea(
-                        content=ft.Column([
-                            ft.Text('CONFIGURATION',size=10,weight=ft.FontWeight.BOLD,color=ft.Colors.ON_PRIMARY_CONTAINER),
-                            ft.Row([
-                                ft.Icon(ft.Icons.FITNESS_CENTER, color=ft.Colors.ON_PRIMARY_CONTAINER),
-                                ft.Text(f'{workout.get('config')} • {workout.get('type')}',size=18,weight=ft.FontWeight.BOLD,color=ft.Colors.ON_PRIMARY_CONTAINER),
-                            ]),
-                        ])
-                    )
-                ),
-                #Workout Content
-                ft.Container(
-                    padding=20,
-                    content=ft.SelectionArea(
-                        content=ft.Column([
-                            ft.Text('THE WORKOUT',weight=ft.FontWeight.BOLD,color=ft.Colors.OUTLINE),
-                            ft.Text(workout.get('content'),size=16,selectable=True),
+                ft.SafeArea(
+                    content=ft.Column([
+                        ft.AppBar(title=ft.Text(workout.get('title', 'Untitled'))),
+                        # Header Content
+                        ft.Container(
+                            bgcolor=ft.Colors.PRIMARY_CONTAINER,
+                            padding=20,
+                            border_radius=10,
+                            content=ft.SelectionArea(
+                                content=ft.Column([
+                                    ft.Text('CONFIGURATION', size=10, weight=ft.FontWeight.BOLD,
+                                            color=ft.Colors.ON_PRIMARY_CONTAINER),
+                                    ft.Row([
+                                        ft.Icon(ft.Icons.FITNESS_CENTER, color=ft.Colors.ON_PRIMARY_CONTAINER),
+                                        ft.Text(f'{workout.get('config')} • {workout.get('type')}', size=18,
+                                                weight=ft.FontWeight.BOLD, color=ft.Colors.ON_PRIMARY_CONTAINER),
+                                    ]),
+                                ])
+                            )
+                        ),
+                        # Workout Content
+                        ft.Container(
+                            padding=20,
+                            content=ft.SelectionArea(
+                                content=ft.Column([
+                                    ft.Text('THE WORKOUT', weight=ft.FontWeight.BOLD, color=ft.Colors.OUTLINE),
+                                    ft.Text(workout.get('content'), size=16, selectable=True),
 
-                            ft.Divider(height=40,color=ft.Colors.OUTLINE_VARIANT),
+                                    ft.Divider(height=40, color=ft.Colors.OUTLINE_VARIANT),
 
-                            ft.Row([
-                                ft.Text(workout.get('rounds'),size=16,color=ft.Colors.BLUE),
-                                ft.VerticalDivider(),
-                                ft.Text(workout.get('rest'),size=16,color=ft.Colors.RED),
-                        ], alignment=ft.MainAxisAlignment.SPACE_AROUND),
-                        ft.Divider(height=40),
-                        # Action Buttons
-                        ft.Row([
-                            ft.Button('Edit', icon=ft.Icons.EDIT, on_click=handle_edit),
-                            ft.Button('Delete', icon=ft.Icons.DELETE_FOREVER, color=ft.Colors.ERROR,on_click=handle_delete),
-                        ], alignment=ft.MainAxisAlignment.CENTER)
-                        ])
-                    )
-                ),
-                # Stopwatch
-                ft.Container(
+                                    ft.Row([
+                                        ft.Text(workout.get('rounds'), size=16, color=ft.Colors.BLUE),
+                                        ft.VerticalDivider(),
+                                        ft.Text(workout.get('rest'), size=16, color=ft.Colors.RED),
+                                    ], alignment=ft.MainAxisAlignment.SPACE_AROUND),
+                                    ft.Divider(height=40),
+                                    # Action Buttons
+                                    ft.Row([
+                                        ft.Button('Edit', icon=ft.Icons.EDIT, on_click=handle_edit),
+                                        ft.Button('Delete', icon=ft.Icons.DELETE_FOREVER, color=ft.Colors.ERROR,
+                                                  on_click=handle_delete),
+                                    ], alignment=ft.MainAxisAlignment.CENTER)
+                                ])
+                            )
+                        ),
+                        # Stopwatch
+                        ft.Container(
 
-                    margin=ft.Margin.only(top=10, bottom=10),
-                    content=create_stopwatch(page), alignment=ft.Alignment.CENTER #This alignment doesn't do what I want it to right now...
+                            margin=ft.Margin.only(top=10, bottom=10),
+                            content=create_stopwatch(page), alignment=ft.Alignment.CENTER
+                            # This alignment doesn't do what I want it to right now...
+                        ),
+                    ])
                 ),
             ]
         )
@@ -299,7 +307,7 @@ def main(page: ft.Page):
             return f'{mins:02d}:{sec:02d}'
         # Thread logic
         def update_timer():
-            while state[1]: # While is_running is True (aka while timer is going]
+            while state[1]: # While is_running is True (aka while timer is going)
                 time.sleep(1)
                 state[0] += 1
                 # Shout 'tick' to the main page
@@ -330,9 +338,9 @@ def main(page: ft.Page):
             page.update()
 
         # Create Toggle Buttons
-        play_btn = ft.IconButton(icon=ft.Icons.PLAY_CIRCLE, icon_size=30, on_click=start_timer, icon_color=ft.Colors.GREEN)
-        pause_btn = ft.IconButton(icon=ft.Icons.PAUSE_CIRCLE, icon_size=30, on_click=stop_timer, visible=False, icon_color=ft.Colors.AMBER)
-        reset_btn = ft.IconButton(icon=ft.Icons.REPLAY_CIRCLE_FILLED, icon_size=30, on_click=reset_timer,icon_color=ft.Colors.RED)
+        play_btn = ft.IconButton(icon=ft.Icons.PLAY_ARROW, icon_size=30, on_click=start_timer, icon_color=ft.Colors.GREEN)
+        pause_btn = ft.IconButton(icon=ft.Icons.PAUSE, icon_size=30, on_click=stop_timer, visible=False, icon_color=ft.Colors.AMBER)
+        reset_btn = ft.IconButton(icon=ft.Icons.REPLAY_ROUNDED, icon_size=30, on_click=reset_timer,icon_color=ft.Colors.RED)
 
         # Return the UI Layout
         return ft.Container(
@@ -461,10 +469,14 @@ def main(page: ft.Page):
     home_view = ft.View(
         route='/',
         controls=[
-            ft.Text('My Workouts', size=30,weight=ft.FontWeight.W_300),
-            ft.Row([config_dropdown, searchbar]),
-            ft.Divider(),
-            workout_column
+            ft.SafeArea(
+                content=ft.Column([
+                    ft.Text('Kettlebell Bible', size=30, weight=ft.FontWeight.W_300),
+                    ft.Row([config_dropdown, searchbar]),
+                    ft.Divider(),
+                    ft.Container(content=workout_column, expand=True)
+                ])
+            )
         ],
         #Add Button Definition
         floating_action_button = ft.FloatingActionButton(
