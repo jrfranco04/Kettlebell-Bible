@@ -1,5 +1,5 @@
 import flet as ft
-import json
+import database as db
 import threading
 import time
 
@@ -18,8 +18,7 @@ def main(page: ft.Page):
     page.on_view_pop = view_pop
 
     #load the data
-    with open('workouts.json', 'r') as file:
-        full_data = json.load(file)
+    full_data = db.fetch_all_workouts()
 
     #Container for our list of workouts
     #Empty column for now
@@ -114,12 +113,13 @@ def main(page: ft.Page):
             'rounds': new_rounds.value
         }
 
-        #Add to local list (full_data)
-        full_data.append(new_workout)
+        # Add to Database
+        db.add_workouts(new_workout)
 
-        #Save to JSON file (Permanent Storage)
-        with open('workouts.json', 'w') as f:
-            json.dump(full_data, f, indent=4)
+        # refresh the data from the DB to get the new ID
+        # Declare nonlocal to update the variable inside the function
+        nonlocal full_data
+        full_data = db.fetch_all_workouts()
 
         #Clear out the text fields for the next entry
         new_title.value = ''
@@ -150,26 +150,34 @@ def main(page: ft.Page):
         #Retrieves the specific workout dictionary being edited
         workout_to_edit = edit.data
 
-        #Update dictionary values
-        workout_to_edit['title'] = edit_title.value
-        workout_to_edit['type'] = edit_type.value
-        workout_to_edit['config'] = edit_config.value
-        workout_to_edit['rest'] = edit_rest.value
-        workout_to_edit['content'] = edit_content.value
-        workout_to_edit['rounds'] = edit_rounds.value
+        # Create a dictionary of the new values
+        updated_values = {
+        'title': edit_title.value,
+        'type': edit_type.value,
+        'config': edit_config.value,
+        'rest': edit_rest.value,
+        'content': edit_content.value,
+        'rounds': edit_rounds.value
+        }
 
-        #Save to file
-        with open('workouts.json', 'w') as f:
-            json.dump(full_data, f, indent=4)
+        # Update in Database
+        # Use the id that came from the database when we load the app
+        db.update_workout(workout_to_edit['id'], updated_values)
+
+        # Refresh the local data
+        nonlocal full_data
+        full_data = db.fetch_all_workouts()
 
         #Refresh the homepage
         render_workouts(full_data)
 
-        #Hot Swap Data in the Card being viewed (real-time updates for edits to workouts)
+        #Update the detail view if it's currently open
         if len(page.views) > 1:
             page.views.pop() #Removes the old page
-            fresh = view_workout_details(workout_to_edit) #Creates fresh card
-            page.views.append(fresh) #Adds the new card
+            # Find the specific updated workout from our new list
+            new_version = next((w for w in full_data if w['id'] == workout_to_edit['id']), None)
+            if new_version:
+                page.views.append(view_workout_details(new_version))
 
         #Refresh UI
         edit.open = False
@@ -180,14 +188,18 @@ def main(page: ft.Page):
         workout_to_delete = confirm_dlg.data
 
         #Perform the delete
-        if workout_to_delete in full_data:
-            full_data.remove(workout_to_delete)
-            #Save to JSON file
-            with open('workouts.json', 'w') as f:
-                json.dump(full_data, f, indent=4)
+        db.delete_workout(workout_to_delete['id'])
 
-            #Refresh UI
-            render_workouts(full_data)
+        # Refresh the local data
+        nonlocal full_data
+        full_data = db.fetch_all_workouts()
+
+        #Refresh UI
+        render_workouts(full_data)
+
+        # Go back to the home page after deletion
+        if len(page.views) > 1:
+            page.views.pop()
 
         #Close confirm dialog
         confirm_dlg.open = False
