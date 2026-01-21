@@ -376,5 +376,13 @@
         "rest": "90 Seconds",
         "content": "Snatch: 1 rep \nKB Clean: 2 reps \nKB Swing: 3 reps \nSwitch",
         "rounds": "5 Rounds"
+    },
+    {
+        "title": "New Workout",
+        "type": "KB Complex",
+        "config": "Single KB",
+        "rest": "60 Seconds",
+        "content": "Clean 6\nThruster 6 reps",
+        "rounds": "4"
     }
 ]
