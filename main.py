@@ -1,4 +1,6 @@
 import flet as ft
+
+
 import database as db
 import threading
 import time
@@ -11,6 +13,8 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.DARK
     page.theme = ft.Theme(color_scheme_seed=ft.Colors.LIGHT_BLUE_ACCENT)
     page.scroll = "adaptive" #can scroll if the list is long
+
+    input = ft.TextField(value='0', text_align=ft.TextAlign.RIGHT,width=150)
 
     def view_pop(view):
         page.views.pop() # Removes top card
@@ -217,6 +221,12 @@ def main(page: ft.Page):
         edit.open = False
         page.update()
 
+
+    def minus_click(e):
+        input.value = str(int(input.value)-1)
+    def plus_click(e):
+        input.value = str(int(input.value)+1)
+
     def view_workout_details(workout):
         # Returns a 'View' object
         #Edit/Delete Logic
@@ -289,10 +299,12 @@ def main(page: ft.Page):
                         ),
                         # Stopwatch
                         ft.Container(
-
                             margin=ft.Margin.only(top=10, bottom=10),
-                            content=create_stopwatch(page), alignment=ft.Alignment.CENTER
-                            # This alignment doesn't do what I want it to right now...
+                            content=ft.Row([create_stopwatch(page),
+                                            ft.IconButton(ft.Icons.REMOVE,on_click=minus_click),
+                                           input,
+                                            ft.IconButton(ft.Icons.ADD, on_click=plus_click),
+                                           ], alignment=ft.MainAxisAlignment.CENTER)
                         ),
                     ])
                 ),
@@ -350,9 +362,9 @@ def main(page: ft.Page):
             page.update()
 
         # Create Toggle Buttons
-        play_btn = ft.IconButton(icon=ft.Icons.PLAY_ARROW, icon_size=30, on_click=start_timer, icon_color=ft.Colors.GREEN)
-        pause_btn = ft.IconButton(icon=ft.Icons.PAUSE, icon_size=30, on_click=stop_timer, visible=False, icon_color=ft.Colors.AMBER)
-        reset_btn = ft.IconButton(icon=ft.Icons.REPLAY_ROUNDED, icon_size=30, on_click=reset_timer,icon_color=ft.Colors.RED)
+        play_btn = ft.IconButton(icon=ft.Icons.PLAY_ARROW, icon_size=60, on_click=start_timer, icon_color=ft.Colors.GREEN)
+        pause_btn = ft.IconButton(icon=ft.Icons.PAUSE, icon_size=60, on_click=stop_timer, visible=False, icon_color=ft.Colors.AMBER)
+        reset_btn = ft.IconButton(icon=ft.Icons.REPLAY_ROUNDED, icon_size=60, on_click=reset_timer,icon_color=ft.Colors.RED)
 
         # Return the UI Layout
         return ft.Container(
