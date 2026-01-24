@@ -14,7 +14,7 @@ def main(page: ft.Page):
     page.theme = ft.Theme(color_scheme_seed=ft.Colors.LIGHT_BLUE_ACCENT)
     page.scroll = "adaptive" #can scroll if the list is long
 
-    input = ft.TextField(value='0', text_align=ft.TextAlign.RIGHT,width=150)
+    input = ft.TextField(value='0', text_align=ft.TextAlign.CENTER,width=50)
 
     def view_pop(view):
         page.views.pop() # Removes top card
@@ -251,6 +251,7 @@ def main(page: ft.Page):
         #Page Layout
         return ft.View(
             route='/workout_detail',
+            scroll="Adaptive",
             controls=[
                 ft.SafeArea(
                     content=ft.Column([
@@ -297,17 +298,24 @@ def main(page: ft.Page):
                                 ])
                             )
                         ),
-                        # Stopwatch
+                        # Round Counter
                         ft.Container(
                             margin=ft.Margin.only(top=10, bottom=10),
-                            content=ft.Row([create_stopwatch(page),
-                                            ft.IconButton(ft.Icons.REMOVE,on_click=minus_click),
-                                           input,
-                                            ft.IconButton(ft.Icons.ADD, on_click=plus_click),
-                                           ], alignment=ft.MainAxisAlignment.CENTER)
+                            content=ft.Column([
+                                ft.Row([
+                                    ft.Text("Rounds Completed:", weight=ft.FontWeight.BOLD),
+                                    ft.Container(width=20),
+                                    ft.IconButton(ft.Icons.REMOVE_CIRCLE_OUTLINE,on_click=minus_click,icon_color=ft.Colors.RED_400),
+                                    input,
+                                    ft.IconButton(ft.Icons.ADD_CIRCLE_OUTLINE,on_click=plus_click,icon_color=ft.Colors.GREEN_400),
+                                ]),
+                                # Stopwatch
+                                ft.Divider(),
+                                create_stopwatch(page),
+                            ],alignment=ft.MainAxisAlignment.CENTER)
                         ),
                     ])
-                ),
+                )
             ]
         )
 
