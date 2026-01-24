@@ -1,5 +1,6 @@
 import flet as ft
-
+from flet import MainAxisAlignment
+from flet.controls.border_radius import horizontal
 
 import database as db
 import threading
@@ -275,6 +276,7 @@ def main(page: ft.Page):
                         ),
                         # Workout Content
                         ft.Container(
+                            expand=True,
                             padding=20,
                             content=ft.SelectionArea(
                                 content=ft.Column([
@@ -308,11 +310,12 @@ def main(page: ft.Page):
                                     ft.IconButton(ft.Icons.REMOVE_CIRCLE_OUTLINE,on_click=minus_click,icon_color=ft.Colors.RED_400),
                                     input,
                                     ft.IconButton(ft.Icons.ADD_CIRCLE_OUTLINE,on_click=plus_click,icon_color=ft.Colors.GREEN_400),
-                                ]),
+                                ], alignment=ft.MainAxisAlignment.CENTER),
                                 # Stopwatch
                                 ft.Divider(),
                                 create_stopwatch(page),
-                            ],alignment=ft.MainAxisAlignment.CENTER)
+                            ],horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
+                            width=float('inf'),
                         ),
                     ])
                 )
@@ -381,8 +384,8 @@ def main(page: ft.Page):
             content=ft.Column([
                 time_display,
                 ft.Divider(),
-                ft.Row([play_btn,pause_btn,reset_btn]),
-            ], alignment=ft.MainAxisAlignment.CENTER)
+                ft.Row([play_btn,pause_btn,reset_btn],alignment=ft.MainAxisAlignment.CENTER),
+            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
         )
 
 
