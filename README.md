@@ -36,7 +36,7 @@ bash
 
 pip install flet
 
-* Run the app
+# Run the app
 
 flet run main.py
 ```
