@@ -21,19 +21,24 @@ Moreso, I wanted to give myself an easier way to view the workouts rather than s
 **Installation:**
 * Clone the repo:
 
-'''bash
+'''
+bash
 
 git clone 
 
 [https://github.com/jrfranco04/kettlebell-bible.git](https://github.com/jrfranco04/kettlebell-bible.git)
+'''
+
 * Install dependencies:
 
-'''bash 
+'''
+bash 
 
 pip install flet
 
 * Run the app
 
 flet run main.py
+'''
 
 
