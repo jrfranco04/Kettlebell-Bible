@@ -361,11 +361,16 @@ def main(page: ft.Page):
     # The backup waiting for the user's OK in the import dialog
     pending_import = {"workouts": [], "counts": {}}
 
+    # The workouts the user has ticked to bring back from the deleted ones
+    def ticked_restores():
+        return [box.data for box in restore_column.controls if box.value]
+
     # The Import button only works when there is something it would actually do
     def refresh_import_button():
         counts = pending_import["counts"]
-        restoring = counts["deleted_here"] and restore_checkbox.value
-        import_btn.disabled = not (counts["added"] or counts["updated"] or restoring)
+        import_btn.disabled = not (
+            counts["added"] or counts["updated"] or ticked_restores()
+        )
         import_dlg.update()
 
     async def import_backup(e):
@@ -401,15 +406,29 @@ def main(page: ft.Page):
         header = f"This backup has {total} workout{'' if total == 1 else 's'}"
         if backup.exported_at:
             header += f" (exported {backup.exported_at[:10]})"
-        import_summary.value = "\n".join(
-            [header + ":", ""]
-            + ["• " + line for line in describe_import(counts, backup)]
-        )
-        restore_checkbox.label = (
-            f"Also bring back the {counts['deleted_here']} I deleted since then"
-        )
-        restore_checkbox.visible = counts["deleted_here"] > 0
-        restore_checkbox.value = False
+        lines = [header + ":", ""]
+        lines += ["• " + line for line in describe_import(counts, backup)]
+        if counts["deleted_here"]:
+            lines.append("")
+            if counts["added"] or counts["updated"]:
+                lines.append("Workouts you deleted stay deleted unless you tick them.")
+            else:
+                lines.append(
+                    "There's nothing new to import. Tick a deleted workout to bring "
+                    "it back, or Cancel to leave everything as it is."
+                )
+        import_summary.value = "\n".join(lines)
+        # One checkbox per deleted workout so each can be kept deleted or brought back
+        restore_column.controls = [
+            ft.Checkbox(
+                label=deleted["title"],
+                data=deleted["uuid"],
+                value=False,
+                on_change=lambda e: refresh_import_button(),
+            )
+            for deleted in counts["deleted"]
+        ]
+        restore_heading.visible = bool(counts["deleted"])
         pending_import.update(workouts=backup.workouts, counts=counts)
         refresh_import_button()
         import_dlg.open = True
@@ -419,7 +438,7 @@ def main(page: ft.Page):
         import_dlg.open = False
         try:
             result = db.import_workouts(
-                pending_import["workouts"], restore_deleted=bool(restore_checkbox.value)
+                pending_import["workouts"], restore=ticked_restores()
             )
         except Exception as ex:
             page.update()
@@ -675,14 +694,21 @@ def main(page: ft.Page):
 
     # Defines the 'Import Backup' dialog window
     import_summary = ft.Text()
-    restore_checkbox = ft.Checkbox(
-        value=False, visible=False, on_change=lambda e: refresh_import_button()
+    restore_heading = ft.Text(
+        "Deleted since this backup was made (tick to bring back):",
+        weight=ft.FontWeight.BOLD,
+        visible=False,
     )
+    restore_column = ft.Column(tight=True)
     import_btn = ft.TextButton("Import", on_click=confirm_import, disabled=True)
     import_dlg = ft.AlertDialog(
         modal=True,
         title=ft.Text("Import Backup"),
-        content=ft.Column([import_summary, restore_checkbox], tight=True),
+        content=ft.Column(
+            [import_summary, restore_heading, restore_column],
+            tight=True,
+            scroll=ft.ScrollMode.ADAPTIVE,
+        ),
         actions=[import_btn, ft.TextButton("Cancel", on_click=close_import_dialog)],
         actions_padding=ft.Padding.only(right=20, top=40, bottom=10),
         actions_alignment=ft.MainAxisAlignment.END,

@@ -236,7 +236,7 @@ class _DryRun(Exception):
     """Raised inside the import transaction to roll it back after counting."""
 
 
-def import_workouts(incoming, restore_deleted=False, dry_run=False):
+def import_workouts(incoming, restore=(), dry_run=False):
     """Merge a list of workout dicts (from a backup) into the library.
 
     Matching is by uuid. Backups made before uuids existed are matched on their
@@ -245,9 +245,14 @@ def import_workouts(incoming, restore_deleted=False, dry_run=False):
       - newer than the library copy -> updated (keeps the backup's timestamp)
       - same text                   -> unchanged
       - library copy is as new/newer-> left alone
-      - deleted in the library      -> left alone, unless restore_deleted
+      - deleted in the library      -> left alone, unless its uuid is in `restore`,
+                                       which brings back the library's own last version
+                                       (or the backup's, if edited after the deletion)
     With dry_run=True nothing is saved; the returned counts show what would happen.
+    The result also lists the library's deleted workouts that the backup contains
+    (["deleted"], each with a uuid and title) so the caller can offer to restore them.
     """
+    restore = set(restore)
     counts = {
         "added": 0,
         "updated": 0,
@@ -255,6 +260,7 @@ def import_workouts(incoming, restore_deleted=False, dry_run=False):
         "kept_newer": 0,
         "deleted_here": 0,
         "restored": 0,
+        "deleted": [],
     }
 
     def content_key(workout):
@@ -276,6 +282,7 @@ def import_workouts(incoming, restore_deleted=False, dry_run=False):
                     )
                 ]
                 by_uuid = {row["uuid"]: row for row in rows}
+                seen_deleted = set()
                 by_content = {}
                 for row in rows:  # Live rows win over deleted ones with the same text
                     key = content_key(row)
@@ -318,23 +325,41 @@ def import_workouts(incoming, restore_deleted=False, dry_run=False):
                         continue
 
                     if local["deleted"]:
-                        if restore_deleted:
-                            conn.execute(
-                                """
-                                UPDATE workouts
-                                SET title=?, type=?, config=?, rest=?, rounds=?,
-                                    content=?, deleted=0, updated_at=?
-                                WHERE uuid=?
-                                """,
-                                (
-                                    *(workout.get(f) or "" for f in TEXT_FIELDS),
-                                    _now(),
-                                    local["uuid"],
-                                ),
-                            )
+                        if local["uuid"] in restore:
+                            # Undo the delete. Keep the library's own last version
+                            # unless the backup has an edit made after the deletion.
+                            incoming_time = parse_timestamp(workout.get("updated_at"))
+                            deleted_time = parse_timestamp(local["updated_at"])
+                            if incoming_time and (
+                                deleted_time is None or incoming_time > deleted_time
+                            ):
+                                conn.execute(
+                                    """
+                                    UPDATE workouts
+                                    SET title=?, type=?, config=?, rest=?, rounds=?,
+                                        content=?, deleted=0, updated_at=?
+                                    WHERE uuid=?
+                                    """,
+                                    (
+                                        *(workout.get(f) or "" for f in TEXT_FIELDS),
+                                        workout["updated_at"],
+                                        local["uuid"],
+                                    ),
+                                )
+                            else:
+                                conn.execute(
+                                    "UPDATE workouts SET deleted=0, updated_at=? "
+                                    "WHERE uuid=?",
+                                    (_now(), local["uuid"]),
+                                )
+                            local["deleted"] = 0
                             counts["restored"] += 1
-                        else:
+                        elif local["uuid"] not in seen_deleted:
+                            seen_deleted.add(local["uuid"])
                             counts["deleted_here"] += 1
+                            counts["deleted"].append(
+                                {"uuid": local["uuid"], "title": local["title"]}
+                            )
                         continue
 
                     incoming_time = parse_timestamp(workout.get("updated_at"))

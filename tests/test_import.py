@@ -147,6 +147,7 @@ class TestDeletedWorkouts(ImportTestCase):
     def setUp(self):
         super().setUp()
         mine = self.library()["One"]
+        self.one_uuid = mine["uuid"]
         self.backup_copy = incoming(
             **{
                 k: mine[k]
@@ -162,24 +163,119 @@ class TestDeletedWorkouts(ImportTestCase):
         self.assertEqual((counts["deleted_here"], counts["restored"]), (1, 0))
         self.assertNotIn("One", self.library())
 
-    def test_restored_when_asked(self):
-        counts = db.import_workouts([self.backup_copy], restore_deleted=True)
-        self.assertEqual(counts["restored"], 1)
+    def test_lists_the_deleted_workouts_so_they_can_be_offered(self):
+        counts = db.import_workouts([self.backup_copy], dry_run=True)
+        self.assertEqual(counts["deleted"], [{"uuid": self.one_uuid, "title": "One"}])
+
+    def test_restored_when_chosen(self):
+        counts = db.import_workouts([self.backup_copy], restore=[self.one_uuid])
+        self.assertEqual((counts["restored"], counts["deleted_here"]), (1, 0))
         self.assertIn("One", self.library())
 
+    def test_choosing_an_unrelated_uuid_restores_nothing(self):
+        counts = db.import_workouts([self.backup_copy], restore=["not-a-real-uuid"])
+        self.assertEqual((counts["restored"], counts["deleted_here"]), (0, 1))
+        self.assertNotIn("One", self.library())
+
     def test_restored_copy_is_not_deleted_again_by_a_second_import(self):
-        db.import_workouts([self.backup_copy], restore_deleted=True)
+        db.import_workouts([self.backup_copy], restore=[self.one_uuid])
         counts = db.import_workouts([self.backup_copy])
         self.assertEqual(counts["unchanged"] + counts["kept_newer"], 1)
         self.assertIn("One", self.library())
 
     def test_old_backup_without_uuids_also_finds_the_deleted_one(self):
         no_uuid = dict(self.backup_copy, uuid="", updated_at="")
-        self.assertEqual(db.import_workouts([no_uuid])["deleted_here"], 1)
-        self.assertEqual(
-            db.import_workouts([no_uuid], restore_deleted=True)["restored"], 1
-        )
+        preview = db.import_workouts([no_uuid], dry_run=True)
+        self.assertEqual(preview["deleted_here"], 1)
+        # restoring uses the library's uuid for it, which the preview reports
+        chosen = [d["uuid"] for d in preview["deleted"]]
+        self.assertEqual(db.import_workouts([no_uuid], restore=chosen)["restored"], 1)
         self.assertIn("One", self.library())
+
+    def test_same_deleted_workout_listed_twice_in_a_file_counts_once(self):
+        no_uuid = dict(self.backup_copy, uuid="", updated_at="")
+        counts = db.import_workouts([no_uuid, no_uuid])
+        self.assertEqual((counts["deleted_here"], len(counts["deleted"])), (1, 1))
+        chosen = [self.one_uuid]
+        counts = db.import_workouts([no_uuid, no_uuid], restore=chosen)
+        self.assertEqual(counts["restored"], 1)
+
+
+class TestRestoreKeepsTheRightVersion(ImportTestCase):
+    def backup_of(self, title):
+        mine = self.library()[title]
+        return incoming(
+            **{
+                k: mine[k]
+                for k in ("title", "type", "config", "rest", "rounds", "content")
+            },
+            uuid=mine["uuid"],
+            updated_at=mine["updated_at"],
+        )
+
+    def test_edit_made_after_the_backup_survives_delete_and_restore(self):
+        backup = self.backup_of("One")
+        one = self.library()["One"]
+        db.update_workout(
+            one["id"],
+            {
+                "title": "One (edited)",
+                "type": "",
+                "config": "",
+                "rest": "",
+                "rounds": "",
+                "content": "",
+            },
+        )
+        db.delete_workout(one["id"])
+        db.import_workouts([backup], restore=[one["uuid"]])
+        self.assertIn("One (edited)", self.library())
+        self.assertNotIn("One", self.library())
+
+    def test_backup_edit_made_after_the_deletion_wins(self):
+        one = self.library()["One"]
+        db.delete_workout(one["id"])
+        newer = incoming(
+            "One (edited elsewhere)",
+            uuid=one["uuid"],
+            updated_at="2999-01-01T00:00:00+00:00",
+        )
+        db.import_workouts([newer], restore=[one["uuid"]])
+        restored = self.library()["One (edited elsewhere)"]
+        self.assertEqual(restored["updated_at"], "2999-01-01T00:00:00+00:00")
+
+
+class TestChoosingWhichDeletedToRestore(ImportTestCase):
+    def test_restores_only_the_ticked_ones(self):
+        db.add_workouts({"title": "Three"})
+        db.add_workouts({"title": "Four"})
+        backup = [
+            incoming(
+                **{
+                    k: w[k]
+                    for k in ("title", "type", "config", "rest", "rounds", "content")
+                },
+                uuid=w["uuid"],
+                updated_at=w["updated_at"],
+            )
+            for w in db.fetch_all_workouts()
+        ]
+        by_title = self.library()
+        accidental, intended = by_title["One"], by_title["Three"]
+        for w in (accidental, intended, by_title["Four"]):
+            db.delete_workout(w["id"])
+
+        preview = db.import_workouts(backup, dry_run=True)
+        self.assertEqual(preview["deleted_here"], 3)
+        self.assertEqual(
+            sorted(d["title"] for d in preview["deleted"]), ["Four", "One", "Three"]
+        )
+
+        result = db.import_workouts(backup, restore=[accidental["uuid"]])
+        self.assertEqual((result["restored"], result["deleted_here"]), (1, 2))
+        self.assertEqual(
+            sorted(self.library()), ["One", "Two"]
+        )  # Three and Four stay deleted
 
 
 class TestDryRun(ImportTestCase):
