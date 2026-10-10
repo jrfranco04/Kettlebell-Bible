@@ -5,7 +5,7 @@ import flet as ft
 
 import database as db
 from backup import BackupError, describe_import, describe_result, load_backup
-from helpers import config_options, filter_workouts, parse_count
+from helpers import config_options, filter_workouts, interval_defaults, parse_count
 from timers import TimerPanel
 
 log = logging.getLogger(__name__)
@@ -375,14 +375,16 @@ def main(page: ft.Page):
             input_filter=ft.NumbersOnlyInputFilter(),
         )
 
-        timer = TimerPanel(page, keep_awake, haptic, workout["rest"])
+        timer = TimerPanel(
+            page, keep_awake, haptic, workout["rest"], interval_defaults(workout)
+        )
         active_timer_stop = timer.stop
 
         def change_rounds(amount):
             rounds_done.value = str(max(0, parse_count(rounds_done.value) + amount))
             rounds_done.update()
             # Finishing a round starts the rest countdown (needs a readable rest time)
-            if amount > 0 and auto_rest.value and timer.has_rest_preset:
+            if amount > 0 and auto_rest.value and timer.can_auto_rest:
                 timer.start_rest()
 
         def save_auto_rest(e):

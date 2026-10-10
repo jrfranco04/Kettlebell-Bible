@@ -144,3 +144,57 @@ class ElapsedClock:
     def reset(self):
         self._base = 0.0
         self._started = None
+
+
+# ----------------------------- interval timer -----------------------------
+
+DEFAULT_INTERVAL_SECONDS = 60
+DEFAULT_INTERVAL_COUNT = 10
+MAX_INTERVAL_COUNT = 99
+
+_EVERY_N_MOM = re.compile(r"\be(\d+)mom\b")
+_EVERY_N_MINUTES = re.compile(r"\bevery\s+(\d+)\s+min")
+_ROUNDS = re.compile(r"(\d+)(?:\s*-\s*\d+)?\s*rounds?\b")
+_BARE_COUNT = re.compile(r"^\s*(\d+)(?:\s*-\s*\d+)?\s*$")
+
+
+def _interval_length(workout):
+    label = " ".join(str(workout.get(f) or "") for f in ("title", "type", "config"))
+    label = label.lower()
+    content = (workout.get("content") or "").lower()
+    for source, pattern in ((label, _EVERY_N_MOM), (content, _EVERY_N_MINUTES)):
+        found = pattern.search(source)
+        if found and int(found.group(1)) > 0:
+            return int(found.group(1)) * 60
+    return DEFAULT_INTERVAL_SECONDS  # EMOM, or anything else: every minute
+
+
+def interval_defaults(workout):
+    """(seconds per interval, number of intervals) to start the interval timer with.
+
+    EMOM is every 60s and E2MOM every 120s. The count comes from the workout's
+    rounds text: '20 Minutes' fills the time with intervals ('12-20 Minutes' uses the
+    lower number), '5 Rounds' means 5, and anything else gets 10.
+    """
+    interval = _interval_length(workout)
+    rounds = (workout.get("rounds") or "").lower()
+
+    count = None
+    if re.search(r"\bmin", rounds):
+        total = parse_seconds(rounds)
+        if total:
+            count = max(1, total // interval)
+    if not count:
+        found = _ROUNDS.search(rounds) or _BARE_COUNT.match(rounds)
+        count = int(found.group(1)) if found else None
+    if not count:
+        count = DEFAULT_INTERVAL_COUNT
+    return interval, max(1, min(MAX_INTERVAL_COUNT, count))
+
+
+def interval_progress(elapsed, interval, count):
+    """Where the interval timer is: (0-based interval index, seconds left in it, done?)."""
+    if elapsed >= interval * count:
+        return count - 1, 0.0, True
+    index = int(elapsed // interval)
+    return index, interval - (elapsed - index * interval), False

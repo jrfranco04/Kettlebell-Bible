@@ -7,9 +7,14 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from helpers import (  # noqa: E402
+    DEFAULT_INTERVAL_COUNT,
+    DEFAULT_INTERVAL_SECONDS,
     DEFAULT_REST_SECONDS,
+    MAX_INTERVAL_COUNT,
     ElapsedClock,
     format_countdown,
+    interval_defaults,
+    interval_progress,
     parse_seconds,
 )
 
@@ -98,6 +103,84 @@ class TestFormatCountdown(unittest.TestCase):
 
     def test_zero_target_is_immediately_up(self):
         self.assertEqual(format_countdown(0, 0), ("00:00", True))
+
+
+class TestIntervalDefaults(unittest.TestCase):
+    def defaults(self, **fields):
+        return interval_defaults(fields)
+
+    def test_the_two_workouts_in_the_library(self):
+        emom = self.defaults(
+            title="Swing/Clean/Squat/Push-Up EMOM",
+            type="EMOM",
+            config="EMOM",
+            rounds="20 Minutes: \nEven Minutes - Left Side \nOdd Minutes - Right Side",
+        )
+        self.assertEqual(emom, (60, 20))
+        e2mom = self.defaults(
+            title="Barbell Workout",
+            type="E2MOM",
+            config="E2MOM",
+            rounds="12-20 Minutes",
+            content="Every 2 Minutes: \nDeadlift: 3 reps",
+        )
+        self.assertEqual(e2mom, (120, 6))  # 12 minutes in 2-minute intervals
+
+    def test_other_every_n_minutes_styles(self):
+        self.assertEqual(self.defaults(type="E3MOM", rounds="18 Minutes"), (180, 6))
+        self.assertEqual(
+            self.defaults(content="Every 3 minutes: swings", rounds="12 minutes"),
+            (180, 4),
+        )
+
+    def test_rounds_text_gives_the_count(self):
+        self.assertEqual(self.defaults(rounds="5 Rounds"), (60, 5))
+        self.assertEqual(self.defaults(rounds="4-5 Rounds"), (60, 4))
+        self.assertEqual(self.defaults(rounds="Cluster Set: 4 Rounds"), (60, 4))
+        self.assertEqual(self.defaults(rounds="#1: 5 Rounds \n #2: 5 Rounds"), (60, 5))
+        self.assertEqual(self.defaults(rounds="4"), (60, 4))
+        self.assertEqual(self.defaults(rounds="4-5"), (60, 4))
+
+    def test_unreadable_or_missing_rounds_use_the_default(self):
+        for rounds in ("", None, "10 per partner", "as many as possible"):
+            self.assertEqual(
+                self.defaults(rounds=rounds),
+                (DEFAULT_INTERVAL_SECONDS, DEFAULT_INTERVAL_COUNT),
+                repr(rounds),
+            )
+
+    def test_minutes_shorter_than_one_interval_still_gives_one(self):
+        self.assertEqual(self.defaults(type="E2MOM", rounds="1 Minute"), (120, 1))
+
+    def test_count_is_capped(self):
+        self.assertEqual(self.defaults(rounds="500 Rounds")[1], MAX_INTERVAL_COUNT)
+
+    def test_an_empty_workout_does_not_crash(self):
+        self.assertEqual(
+            interval_defaults({}), (DEFAULT_INTERVAL_SECONDS, DEFAULT_INTERVAL_COUNT)
+        )
+
+
+class TestIntervalProgress(unittest.TestCase):
+    def test_start_of_the_first_interval(self):
+        self.assertEqual(interval_progress(0, 60, 20), (0, 60, False))
+
+    def test_middle_of_an_interval(self):
+        index, remaining, done = interval_progress(75, 60, 20)
+        self.assertEqual((index, remaining, done), (1, 45, False))
+
+    def test_exact_boundary_moves_to_the_next_interval(self):
+        self.assertEqual(interval_progress(60, 60, 20), (1, 60, False))
+        self.assertEqual(interval_progress(59.99, 60, 20)[0], 0)
+
+    def test_last_interval_and_finish(self):
+        self.assertEqual(interval_progress(19 * 60 + 30, 60, 20), (19, 30, False))
+        self.assertEqual(interval_progress(20 * 60, 60, 20), (19, 0, True))
+        self.assertEqual(interval_progress(99999, 60, 20), (19, 0, True))
+
+    def test_long_gap_lands_in_the_right_interval(self):
+        # e.g. the screen was off for 7 minutes
+        self.assertEqual(interval_progress(7 * 60 + 5, 60, 20)[0], 7)
 
 
 class FakeNow:

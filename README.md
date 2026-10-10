@@ -8,7 +8,7 @@ Moreso, I wanted to give myself an easier way to view the workouts rather than s
 
 ## Features
 * **Custom Library:** Create and edit your own workouts in addition to the ones that come preloaded on the app with a locally saved library.
-* **Focus Mode:** Integrated stopwatch and rest countdown for tracking rest times in between rounds, plus a round counter for each workout. The countdown starts from the workout's rest time (for example "90 Seconds"), can start itself when you finish a round, and vibrates and flashes when time is up. The screen stays awake while a timer is running. Looks to avoid switching back and forth between other applications.
+* **Focus Mode:** Integrated stopwatch and rest countdown for tracking rest times in between rounds, plus a round counter for each workout. The countdown starts from the workout's rest time (for example "90 Seconds"), can start itself when you finish a round, and vibrates and flashes when time is up. An interval timer handles EMOM and E2MOM workouts: it fills in the interval length and number of intervals from the workout, cues each new interval, and signals when the last one ends. The screen stays awake while a timer is running. Looks to avoid switching back and forth between other applications.
 * **Smart Search:** Filter workouts by equipment and configuration and search through the library using keywords.
 * **Offline Storage:** All data is stored locally on the device in a SQLite database that survives app updates.
 * **Backup & Restore:** Export the whole library to a JSON file (for example, to Google Drive) and import it again from the menu. Imports merge by workout: new ones are added, newer edits win, and you see a summary before anything changes.
