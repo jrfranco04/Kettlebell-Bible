@@ -378,14 +378,6 @@
         "rounds": "5 Rounds"
     },
     {
-        "title": "New Workout",
-        "type": "KB Complex",
-        "config": "Single KB",
-        "rest": "60 Seconds",
-        "content": "Clean 6\nThruster 6 reps",
-        "rounds": "4"
-    },
-    {
         "title": "PU/Dip/Snatch/Pushup",
         "type": "Workout",
         "config": "Single KB",

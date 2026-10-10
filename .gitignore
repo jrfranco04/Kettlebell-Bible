@@ -8,3 +8,5 @@ build/
 .dart_tool/
 *.apk
 *.db
+
+Screenshots/
