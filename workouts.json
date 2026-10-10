@@ -384,5 +384,69 @@
         "rest": "60 Seconds",
         "content": "Clean 6\nThruster 6 reps",
         "rounds": "4"
+    },
+    {
+        "title": "PU/Dip/Snatch/Pushup",
+        "type": "Workout",
+        "config": "Single KB",
+        "rest": "60-90 seconds",
+        "content": "Pull ups: 3x12\nDips: 3x10\nSnatch: 3x10 / side\nPush ups: 5x15",
+        "rounds": "3 Rounds"
+    },
+    {
+        "title": "CleanSquat/Thruster/Swing/Row/Pushups",
+        "type": "Complex",
+        "config": "Single KB",
+        "rest": "60 seconds",
+        "content": "Clean to Squat: 4 reps\nThruster: 4 reps\nSwings: 4 reps\nBent Over Row: 4 reps per side\nPushups: 8 reps",
+        "rounds": "5 Rounds"
+    },
+    {
+        "title": "Mace Burpee/Squat/Swing",
+        "type": "Complex",
+        "config": "Mace",
+        "rest": "90 seconds",
+        "content": "Mace Burpees 10 reps\nMace Squats 20 reps\nMace 360s 30 reps",
+        "rounds": "5 Rounds"
+    },
+    {
+        "title": "Mustang",
+        "type": "Complex",
+        "config": "Double KB",
+        "rest": "60 seconds",
+        "content": "Clean and press 1 rep\nLunge each side 1 rep\n6x",
+        "rounds": "6 rounds"
+    },
+    {
+        "title": "Devil's Tricycle",
+        "type": "Complex",
+        "config": "Single KB",
+        "rest": "60 seconds",
+        "content": "KB Swings 6 reps\nKB High Pulls 6 reps\nOffset Squat cleans 3/side",
+        "rounds": "6 rounds"
+    },
+    {
+        "title": "Partner Workout",
+        "type": "Workout",
+        "config": "Single KB",
+        "rest": "",
+        "content": "4 Goblet Squats\n6 Lateral Lunges\n8 Dips\n10 KB Swings",
+        "rounds": "10 per partner"
+    },
+    {
+        "title": "360/Warrior/Shovel",
+        "type": "Complex",
+        "config": "Mace",
+        "rest": "90 seconds",
+        "content": "Mace 360 8/side\n10-2 8/side\nWarrior Lunge 5/side\nShovel 4/side",
+        "rounds": "5 rounds"
+    },
+    {
+        "title": "Mace Flow #1",
+        "type": "Complex",
+        "config": "Mace",
+        "rest": "90 seconds",
+        "content": "Clean into Reverse Lunge\nRotational Press\n10-2 Swing\nLateral Lunge Grave Digger\n4-5x",
+        "rounds": "4-5"
     }
 ]
