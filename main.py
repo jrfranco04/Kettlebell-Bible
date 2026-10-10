@@ -23,6 +23,9 @@ def main(page: ft.Page):
 
     page.on_view_pop = view_pop
 
+    # Create/upgrade the database (and load the bundled workouts on first run)
+    db.init_db()
+
     # load the data
     full_data = db.fetch_all_workouts()
 
