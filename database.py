@@ -1,5 +1,6 @@
+import json
 import sqlite3
-from datetime import date
+from datetime import date, datetime
 
 DB_FILE = 'workouts.db'
 
@@ -51,3 +52,13 @@ def update_workout(id, data):
     ))
     conn.commit()
     conn.close()
+
+
+def export_json():
+    """Serialize every workout to a JSON string (used for manual backups)."""
+    payload = {
+        "app": "kettlebell-bible",
+        "exported_at": datetime.now().isoformat(timespec="seconds"),
+        "workouts": fetch_all_workouts(),
+    }
+    return json.dumps(payload, indent=2, ensure_ascii=False)

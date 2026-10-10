@@ -5,6 +5,7 @@ from flet.controls.border_radius import horizontal
 import database as db
 import threading
 import time
+from datetime import date
 
 
 def main(page: ft.Page):
@@ -232,6 +233,20 @@ def main(page: ft.Page):
     def close_edit_dialog(e):
         edit.open = False
         page.update()
+
+    async def export_backup(e):
+        # Writes every workout to a JSON file the user picks (Drive, Downloads, etc.)
+        try:
+            saved = await ft.FilePicker().save_file(
+                dialog_title="Export workouts",
+                file_name=f"kettlebell-bible-{date.today().isoformat()}.json",
+                src_bytes=db.export_json().encode("utf-8"),
+            )
+        except Exception as ex:
+            page.show_dialog(ft.SnackBar(ft.Text(f"Export failed: {ex}")))
+            return
+        if saved is not None:
+            page.show_dialog(ft.SnackBar(ft.Text("Backup exported")))
 
     def minus_click(e):
         input.value = str(int(input.value) - 1)
@@ -592,8 +607,20 @@ def main(page: ft.Page):
             ft.SafeArea(
                 content=ft.Column(
                     [
-                        ft.Text(
-                            "Kettlebell Bible", size=30, weight=ft.FontWeight.W_300
+                        ft.Row(
+                            [
+                                ft.Text(
+                                    "Kettlebell Bible",
+                                    size=30,
+                                    weight=ft.FontWeight.W_300,
+                                ),
+                                ft.IconButton(
+                                    ft.Icons.FILE_DOWNLOAD,
+                                    tooltip="Export backup",
+                                    on_click=export_backup,
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                         ),
                         ft.Row([config_dropdown, searchbar]),
                         ft.Divider(),
