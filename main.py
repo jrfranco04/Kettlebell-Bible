@@ -5,6 +5,7 @@ from datetime import date
 import flet as ft
 
 import database as db
+from backup import BackupError, describe_import, describe_result, load_backup
 from helpers import config_options, filter_workouts, format_time, parse_count
 
 
@@ -348,10 +349,92 @@ def main(page: ft.Page):
                 src_bytes=db.export_json().encode("utf-8"),
             )
         except Exception as ex:
-            page.show_dialog(ft.SnackBar(ft.Text(f"Export failed: {ex}")))
+            snack(f"Export failed: {ex}")
             return
         if saved is not None:
-            page.show_dialog(ft.SnackBar(ft.Text("Backup exported")))
+            snack("Backup exported")
+
+    # Shows a short message at the bottom of the screen
+    def snack(message):
+        page.show_dialog(ft.SnackBar(ft.Text(message)))
+
+    # The backup waiting for the user's OK in the import dialog
+    pending_import = {"workouts": [], "counts": {}}
+
+    # The Import button only works when there is something it would actually do
+    def refresh_import_button():
+        counts = pending_import["counts"]
+        restoring = counts["deleted_here"] and restore_checkbox.value
+        import_btn.disabled = not (counts["added"] or counts["updated"] or restoring)
+        import_dlg.update()
+
+    async def import_backup(e):
+        # Reads a backup file, shows what would change, and waits for confirmation
+        try:
+            files = await ft.FilePicker().pick_files(dialog_title="Import workouts")
+        except Exception as ex:
+            snack(f"Import failed: {ex}")
+            return
+        if not files:  # Picker was closed without choosing a file
+            return
+        if not files[0].path:
+            snack("This device didn't let the app open that file.")
+            return
+
+        try:
+            backup = load_backup(files[0].path)
+            counts = db.import_workouts(backup.workouts, dry_run=True)
+        except BackupError as ex:
+            snack(str(ex))
+            return
+        except Exception as ex:
+            snack(f"Import failed: {ex}")
+            return
+
+        if not (counts["added"] or counts["updated"] or counts["deleted_here"]):
+            snack(
+                "Nothing to import: your library already has everything in this file."
+            )
+            return
+
+        total = len(backup.workouts)
+        header = f"This backup has {total} workout{'' if total == 1 else 's'}"
+        if backup.exported_at:
+            header += f" (exported {backup.exported_at[:10]})"
+        import_summary.value = "\n".join(
+            [header + ":", ""]
+            + ["• " + line for line in describe_import(counts, backup)]
+        )
+        restore_checkbox.label = (
+            f"Also bring back the {counts['deleted_here']} I deleted since then"
+        )
+        restore_checkbox.visible = counts["deleted_here"] > 0
+        restore_checkbox.value = False
+        pending_import.update(workouts=backup.workouts, counts=counts)
+        refresh_import_button()
+        import_dlg.open = True
+        page.update()
+
+    def confirm_import(e):
+        import_dlg.open = False
+        try:
+            result = db.import_workouts(
+                pending_import["workouts"], restore_deleted=bool(restore_checkbox.value)
+            )
+        except Exception as ex:
+            page.update()
+            snack(f"Import failed: {ex}")
+            return
+        # Show everything so imported workouts aren't hidden by a filter
+        config_dropdown.value = "All"
+        searchbar.value = ""
+        reload_data()
+        page.update()
+        snack(describe_result(result))
+
+    def close_import_dialog(e):
+        import_dlg.open = False
+        page.update()
 
     def view_workout_details(workout):
         # Returns a 'View' object
@@ -590,6 +673,21 @@ def main(page: ft.Page):
         actions_alignment=ft.MainAxisAlignment.END,
     )
 
+    # Defines the 'Import Backup' dialog window
+    import_summary = ft.Text()
+    restore_checkbox = ft.Checkbox(
+        value=False, visible=False, on_change=lambda e: refresh_import_button()
+    )
+    import_btn = ft.TextButton("Import", on_click=confirm_import, disabled=True)
+    import_dlg = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Import Backup"),
+        content=ft.Column([import_summary, restore_checkbox], tight=True),
+        actions=[import_btn, ft.TextButton("Cancel", on_click=close_import_dialog)],
+        actions_padding=ft.Padding.only(right=20, top=40, bottom=10),
+        actions_alignment=ft.MainAxisAlignment.END,
+    )
+
     # Defines the 'Edit Workout' dialog window
     edit = ft.AlertDialog(
         modal=True,
@@ -628,6 +726,7 @@ def main(page: ft.Page):
     page.overlay.append(dlg_modal)
     page.overlay.append(confirm_dlg)
     page.overlay.append(edit)
+    page.overlay.append(import_dlg)
 
     # Homepage Setup Config
     home_view = ft.View(
@@ -643,10 +742,21 @@ def main(page: ft.Page):
                                     size=30,
                                     weight=ft.FontWeight.W_300,
                                 ),
-                                ft.IconButton(
-                                    ft.Icons.FILE_DOWNLOAD,
-                                    tooltip="Export backup",
-                                    on_click=export_backup,
+                                ft.PopupMenuButton(
+                                    icon=ft.Icons.MORE_VERT,
+                                    tooltip="Backup",
+                                    items=[
+                                        ft.PopupMenuItem(
+                                            content="Export backup",
+                                            icon=ft.Icons.FILE_DOWNLOAD,
+                                            on_click=export_backup,
+                                        ),
+                                        ft.PopupMenuItem(
+                                            content="Import backup",
+                                            icon=ft.Icons.FILE_UPLOAD,
+                                            on_click=import_backup,
+                                        ),
+                                    ],
                                 ),
                             ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,

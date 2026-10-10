@@ -30,6 +30,15 @@ def _now():
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
 
+def parse_timestamp(value):
+    """ISO text -> timezone-aware datetime, or None if it can't be read."""
+    try:
+        stamp = datetime.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
+    return stamp if stamp.tzinfo else stamp.replace(tzinfo=timezone.utc)
+
+
 # ---------------------------------- SETUP ----------------------------------
 
 
@@ -221,3 +230,141 @@ def export_json():
         "workouts": fetch_all_workouts(),
     }
     return json.dumps(payload, indent=2, ensure_ascii=False)
+
+
+class _DryRun(Exception):
+    """Raised inside the import transaction to roll it back after counting."""
+
+
+def import_workouts(incoming, restore_deleted=False, dry_run=False):
+    """Merge a list of workout dicts (from a backup) into the library.
+
+    Matching is by uuid. Backups made before uuids existed are matched on their
+    text instead, so importing the same file twice never creates duplicates.
+      - not in the library          -> added
+      - newer than the library copy -> updated (keeps the backup's timestamp)
+      - same text                   -> unchanged
+      - library copy is as new/newer-> left alone
+      - deleted in the library      -> left alone, unless restore_deleted
+    With dry_run=True nothing is saved; the returned counts show what would happen.
+    """
+    counts = {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 0,
+        "kept_newer": 0,
+        "deleted_here": 0,
+        "restored": 0,
+    }
+
+    def content_key(workout):
+        return tuple((workout.get(field) or "") for field in TEXT_FIELDS)
+
+    def same_text(a, b):
+        return content_key(a) == content_key(b)
+
+    conn = sqlite3.connect(get_db_path(), isolation_level=None)
+    conn.row_factory = sqlite3.Row
+    try:
+        try:
+            with _transaction(conn):
+                rows = [
+                    dict(row)
+                    for row in conn.execute(
+                        "SELECT id, uuid, title, type, config, rest, rounds, content, "
+                        "updated_at, deleted FROM workouts"
+                    )
+                ]
+                by_uuid = {row["uuid"]: row for row in rows}
+                by_content = {}
+                for row in rows:  # Live rows win over deleted ones with the same text
+                    key = content_key(row)
+                    if key not in by_content or not row["deleted"]:
+                        by_content[key] = row
+
+                for workout in incoming:
+                    wanted_uuid = workout.get("uuid")
+                    if wanted_uuid:
+                        local = by_uuid.get(wanted_uuid)
+                    else:
+                        local = by_content.get(content_key(workout))
+
+                    if local is None:
+                        new_uuid = wanted_uuid or str(uuid.uuid4())
+                        stamp = (
+                            workout["updated_at"]
+                            if parse_timestamp(workout.get("updated_at"))
+                            else _now()
+                        )
+                        conn.execute(
+                            """
+                            INSERT INTO workouts
+                                (uuid, title, type, config, rest, rounds, content,
+                                 date_created, updated_at)
+                            VALUES (?,?,?,?,?,?,?,?,?)
+                            """,
+                            (
+                                new_uuid,
+                                *(workout.get(field) or "" for field in TEXT_FIELDS),
+                                workout.get("date_created") or date.today().isoformat(),
+                                stamp,
+                            ),
+                        )
+                        added = {f: workout.get(f) or "" for f in TEXT_FIELDS}
+                        added.update(uuid=new_uuid, updated_at=stamp, deleted=0)
+                        by_uuid[new_uuid] = added
+                        by_content[content_key(added)] = added
+                        counts["added"] += 1
+                        continue
+
+                    if local["deleted"]:
+                        if restore_deleted:
+                            conn.execute(
+                                """
+                                UPDATE workouts
+                                SET title=?, type=?, config=?, rest=?, rounds=?,
+                                    content=?, deleted=0, updated_at=?
+                                WHERE uuid=?
+                                """,
+                                (
+                                    *(workout.get(f) or "" for f in TEXT_FIELDS),
+                                    _now(),
+                                    local["uuid"],
+                                ),
+                            )
+                            counts["restored"] += 1
+                        else:
+                            counts["deleted_here"] += 1
+                        continue
+
+                    incoming_time = parse_timestamp(workout.get("updated_at"))
+                    local_time = parse_timestamp(local["updated_at"])
+                    if same_text(local, workout):
+                        counts["unchanged"] += 1
+                    elif incoming_time and (
+                        local_time is None or incoming_time > local_time
+                    ):
+                        conn.execute(
+                            """
+                            UPDATE workouts
+                            SET title=?, type=?, config=?, rest=?, rounds=?,
+                                content=?, updated_at=?
+                            WHERE uuid=?
+                            """,
+                            (
+                                *(workout.get(f) or "" for f in TEXT_FIELDS),
+                                workout["updated_at"],
+                                local["uuid"],
+                            ),
+                        )
+                        counts["updated"] += 1
+                    else:
+                        counts["kept_newer"] += 1
+
+                if dry_run:
+                    raise _DryRun
+        except _DryRun:
+            pass  # _transaction rolled everything back
+    finally:
+        conn.close()
+    return counts

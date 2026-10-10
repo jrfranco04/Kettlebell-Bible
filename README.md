@@ -11,7 +11,7 @@ Moreso, I wanted to give myself an easier way to view the workouts rather than s
 * **Focus Mode:** Integrated stopwatch for easy tracking of rest times in between rounds, plus a round counter for each workout. Looks to avoid switching back and forth between other applications.
 * **Smart Search:** Filter workouts by equipment and configuration and search through the library using keywords.
 * **Offline Storage:** All data is stored locally on the device in a SQLite database that survives app updates.
-* **Backup:** Export the whole library to a JSON file (for example, to Google Drive) with one tap.
+* **Backup & Restore:** Export the whole library to a JSON file (for example, to Google Drive) and import it again from the menu. Imports merge by workout: new ones are added, newer edits win, and you see a summary before anything changes.
 
 ## Build
 * **Language:** All work was coded in Python 3.14
