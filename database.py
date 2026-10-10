@@ -221,6 +221,24 @@ def delete_workout(workout_id):
         )
 
 
+def get_setting(key, default=None):
+    """Read a small app preference (stored as text in the meta table)."""
+    with closing(get_db_connection()) as conn:
+        row = conn.execute(
+            "SELECT value FROM meta WHERE key = ?", (f"setting:{key}",)
+        ).fetchone()
+    return default if row is None else row["value"]
+
+
+def set_setting(key, value):
+    with closing(get_db_connection()) as conn, conn:
+        conn.execute(
+            "INSERT INTO meta (key, value) VALUES (?, ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            (f"setting:{key}", str(value)),
+        )
+
+
 def export_json():
     """Serialize every workout to a JSON string (used for manual backups)."""
     payload = {

@@ -243,5 +243,35 @@ class TestCrud(DatabaseTestCase):
         self.assertIn("uuid", payload["workouts"][0])
 
 
+class TestSettings(DatabaseTestCase):
+    def setUp(self):
+        super().setUp()
+        db.init_db(self.seed_path)
+
+    def test_default_when_never_set(self):
+        self.assertIsNone(db.get_setting("auto_rest"))
+        self.assertEqual(db.get_setting("auto_rest", "1"), "1")
+
+    def test_saved_value_is_read_back_as_text(self):
+        db.set_setting("auto_rest", 0)
+        self.assertEqual(db.get_setting("auto_rest", "1"), "0")
+
+    def test_changing_a_setting_replaces_it(self):
+        db.set_setting("auto_rest", "0")
+        db.set_setting("auto_rest", "1")
+        self.assertEqual(db.get_setting("auto_rest"), "1")
+
+    def test_settings_do_not_clash_with_internal_flags_or_workouts(self):
+        db.set_setting("seeded", "nope")
+        db.init_db(self.seed_path)  # the real 'seeded' flag is untouched
+        self.assertEqual(len(db.fetch_all_workouts()), 2)
+        self.assertEqual(len(db.export_json()) > 0, True)
+
+    def test_settings_survive_reopening(self):
+        db.set_setting("auto_rest", "0")
+        db.init_db(self.seed_path)
+        self.assertEqual(db.get_setting("auto_rest"), "0")
+
+
 if __name__ == "__main__":
     unittest.main()

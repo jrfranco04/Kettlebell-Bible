@@ -1,134 +1,14 @@
-import asyncio
 import logging
-import time
 from datetime import date
 
 import flet as ft
 
 import database as db
 from backup import BackupError, describe_import, describe_result, load_backup
-from helpers import config_options, filter_workouts, format_time, parse_count
+from helpers import config_options, filter_workouts, parse_count
+from timers import TimerPanel
 
 log = logging.getLogger(__name__)
-
-
-# Internal Stopwatch
-def create_stopwatch(page, keep_awake):
-    """Builds the stopwatch UI. Returns (layout, stop) where stop() halts it for good.
-
-    keep_awake(True/False) is called as the stopwatch starts and stops running.
-
-    Time comes from the monotonic clock, not from counting ticks, so the display stays
-    accurate even if the UI lags or the phone screen turns off for a while.
-    """
-    # started = clock reading when it last began running (None when paused)
-    state = {"elapsed": 0.0, "started": None, "task": None}
-
-    time_display = ft.Text(
-        "00:00", size=40, weight=ft.FontWeight.BOLD, font_family="monospace"
-    )
-
-    def current_seconds():
-        total = state["elapsed"]
-        if state["started"] is not None:
-            total += time.monotonic() - state["started"]
-        return int(total)
-
-    def cancel_task():
-        if state["task"] is not None:
-            state["task"].cancel()
-            state["task"] = None
-
-    def show_running(is_running):
-        play_btn.visible = not is_running
-        pause_btn.visible = is_running
-
-    async def tick_loop():
-        shown = -1
-        while state["started"] is not None:
-            seconds = current_seconds()
-            if seconds != shown:  # Only redraw when the visible time changes
-                shown = seconds
-                time_display.value = format_time(seconds)
-                try:
-                    time_display.update()
-                except RuntimeError:
-                    return  # The view was closed, nothing left to update
-            await asyncio.sleep(0.2)
-
-    def start_timer(e):
-        if state["started"] is not None:  # Already running
-            return
-        state["started"] = time.monotonic()
-        state["task"] = page.run_task(tick_loop)
-        keep_awake(True)
-        show_running(True)
-        page.update()
-
-    def stop_timer(e):
-        if state["started"] is None:  # Already paused
-            return
-        state["elapsed"] += time.monotonic() - state["started"]
-        state["started"] = None
-        cancel_task()
-        keep_awake(False)
-        time_display.value = format_time(current_seconds())
-        show_running(False)
-        page.update()
-
-    def reset_timer(e):
-        state["started"] = None
-        state["elapsed"] = 0.0
-        cancel_task()
-        keep_awake(False)
-        time_display.value = "00:00"
-        show_running(False)
-        page.update()
-
-    def stop():
-        # Called when leaving the workout so nothing keeps running in the background
-        state["started"] = None
-        cancel_task()
-        keep_awake(False)
-
-    # Create Toggle Buttons
-    play_btn = ft.IconButton(
-        icon=ft.Icons.PLAY_ARROW,
-        icon_size=60,
-        on_click=start_timer,
-        icon_color=ft.Colors.GREEN,
-    )
-    pause_btn = ft.IconButton(
-        icon=ft.Icons.PAUSE,
-        icon_size=60,
-        on_click=stop_timer,
-        visible=False,
-        icon_color=ft.Colors.AMBER,
-    )
-    reset_btn = ft.IconButton(
-        icon=ft.Icons.REPLAY_ROUNDED,
-        icon_size=60,
-        on_click=reset_timer,
-        icon_color=ft.Colors.RED,
-    )
-
-    # Return the UI Layout
-    layout = ft.Container(
-        border_radius=10,
-        padding=10,
-        content=ft.Column(
-            [
-                time_display,
-                ft.Divider(),
-                ft.Row(
-                    [play_btn, pause_btn, reset_btn],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                ),
-            ],
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        ),
-    )
-    return layout, stop
 
 
 def main(page: ft.Page):
@@ -143,8 +23,11 @@ def main(page: ft.Page):
     # load the data
     full_data = db.fetch_all_workouts()
 
-    # The stopwatch of the workout currently on screen (stopped when we leave it)
-    active_stopwatch_stop = None
+    # The timer panel of the workout currently on screen (stopped when we leave it)
+    active_timer_stop = None
+
+    # Used by the rest timer to buzz when time is up (the app must hold on to it)
+    haptic = ft.HapticFeedback()
 
     # Keeps the screen on while a timer runs (the app has to hold on to this service)
     wakelock = ft.Wakelock()
@@ -225,15 +108,15 @@ def main(page: ft.Page):
         refresh_filter_options()
         apply_filters()
 
-    def stop_active_stopwatch():
-        nonlocal active_stopwatch_stop
-        if active_stopwatch_stop is not None:
-            active_stopwatch_stop()
-            active_stopwatch_stop = None
+    def stop_active_timer():
+        nonlocal active_timer_stop
+        if active_timer_stop is not None:
+            active_timer_stop()
+            active_timer_stop = None
 
     # Pushes a workout's detail page on top of the list (or swaps the current one)
     def show_detail(workout, replace=False):
-        stop_active_stopwatch()
+        stop_active_timer()
         if replace and len(page.views) > 1:
             page.views.pop()
         page.views.append(view_workout_details(workout))
@@ -241,7 +124,7 @@ def main(page: ft.Page):
 
     # Leaves the detail page and returns to the list
     def close_detail():
-        stop_active_stopwatch()
+        stop_active_timer()
         if len(page.views) > 1:
             page.views.pop()
 
@@ -481,9 +364,9 @@ def main(page: ft.Page):
 
     def view_workout_details(workout):
         # Returns a 'View' object
-        nonlocal active_stopwatch_stop
+        nonlocal active_timer_stop
 
-        # Each workout page gets its own counter and stopwatch, so nothing carries over
+        # Each workout page gets its own counter and timers, so nothing carries over
         rounds_done = ft.TextField(
             value="0",
             text_align=ft.TextAlign.CENTER,
@@ -492,11 +375,24 @@ def main(page: ft.Page):
             input_filter=ft.NumbersOnlyInputFilter(),
         )
 
+        timer = TimerPanel(page, keep_awake, haptic, workout["rest"])
+        active_timer_stop = timer.stop
+
         def change_rounds(amount):
             rounds_done.value = str(max(0, parse_count(rounds_done.value) + amount))
             rounds_done.update()
+            # Finishing a round starts the rest countdown (needs a readable rest time)
+            if amount > 0 and auto_rest.value and timer.has_rest_preset:
+                timer.start_rest()
 
-        stopwatch_layout, active_stopwatch_stop = create_stopwatch(page, keep_awake)
+        def save_auto_rest(e):
+            db.set_setting("auto_rest", "1" if auto_rest.value else "0")
+
+        auto_rest = ft.Switch(
+            label="Auto-start rest timer",
+            value=db.get_setting("auto_rest", "1") == "1",
+            on_change=save_auto_rest,
+        )
 
         # Edit/Delete Logic
         def handle_edit(e):
@@ -652,9 +548,13 @@ def main(page: ft.Page):
                                             ],
                                             alignment=ft.MainAxisAlignment.CENTER,
                                         ),
-                                        # Stopwatch
+                                        ft.Row(
+                                            [auto_rest],
+                                            alignment=ft.MainAxisAlignment.CENTER,
+                                        ),
+                                        # Timers
                                         ft.Divider(),
-                                        stopwatch_layout,
+                                        timer.layout,
                                     ],
                                     horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
                                 ),

@@ -1,5 +1,9 @@
 """Pure helper functions for the UI (no Flet imports, so they are easy to test)."""
 
+import math
+import re
+import time
+
 # Workout fields the search box looks through
 SEARCH_FIELDS = ("title", "type", "rest", "rounds")
 
@@ -49,3 +53,94 @@ def filter_workouts(workouts, config="All", text=""):
         ]
 
     return result
+
+
+# ------------------------------- timers -------------------------------
+
+DEFAULT_REST_SECONDS = 60  # Used when a workout's rest text has no usable number
+
+_NUMBER = r"\d+(?:\.\d+)?"
+_UNIT = r"(?:seconds?|secs?|s|minutes?|mins?|m)\b"
+_RANGE = re.compile(rf"({_NUMBER})\s*(?:-|\u2013|to)\s*({_NUMBER})\s*({_UNIT})?")
+_AMOUNT = re.compile(rf"({_NUMBER})\s*({_UNIT})")
+_CLOCK = re.compile(r"^\s*(\d+)?:(\d{2})\s*$")
+_JOINER = re.compile(r"^\s*(?:and)?\s*$")
+
+
+def _unit_seconds(unit):
+    return 60 if unit.startswith("m") else 1
+
+
+def parse_seconds(text):
+    """Read a rest/interval time from workout text, in whole seconds (None if there isn't one).
+
+    '90 Seconds' -> 90, '2 minutes' -> 120, '1:30' -> 90, ':30' -> 30, '90' -> 90,
+    '1 min 30 sec' -> 90. A range uses its lower number: '60-90 seconds' -> 60.
+    Text with no number ('As needed', 'Remaining Time', '') gives None.
+    """
+    text = (text or "").strip().lower()
+    if not text:
+        return None
+
+    clock = _CLOCK.match(text)
+    if clock:
+        seconds = int(clock.group(1) or 0) * 60 + int(clock.group(2))
+        return seconds or None
+
+    if re.fullmatch(_NUMBER, text):
+        return round(float(text)) or None
+
+    ranged = _RANGE.search(text)
+    if ranged:
+        unit = ranged.group(3) or "s"
+        return round(float(ranged.group(1)) * _unit_seconds(unit)) or None
+
+    total, last_end = 0.0, None
+    for match in _AMOUNT.finditer(text):
+        # Only add amounts that directly follow each other, like '1 min 30 sec'
+        if last_end is not None and not _JOINER.match(text[last_end : match.start()]):
+            break
+        total += float(match.group(1)) * _unit_seconds(match.group(2))
+        last_end = match.end()
+    return round(total) or None
+
+
+def format_countdown(target, elapsed):
+    """Countdown text and whether time is up: '01:30' counting down, then '+00:07' over."""
+    remaining = target - elapsed
+    if remaining > 0:
+        return format_time(math.ceil(remaining)), False
+    over = int(-remaining)
+    return ("+" + format_time(over) if over else format_time(0)), True
+
+
+class ElapsedClock:
+    """Counts elapsed time with a monotonic clock, so it stays right if the UI lags
+    or the phone sleeps. `now` can be swapped for a fake clock in tests."""
+
+    def __init__(self, now=time.monotonic):
+        self._now = now
+        self._base = 0.0  # time banked from earlier runs
+        self._started = None  # clock reading when it last began running
+
+    @property
+    def running(self):
+        return self._started is not None
+
+    def elapsed(self):
+        if self._started is None:
+            return self._base
+        return self._base + (self._now() - self._started)
+
+    def start(self):
+        if self._started is None:
+            self._started = self._now()
+
+    def pause(self):
+        if self._started is not None:
+            self._base = self.elapsed()
+            self._started = None
+
+    def reset(self):
+        self._base = 0.0
+        self._started = None
