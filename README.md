@@ -39,10 +39,16 @@ On the desktop the database is kept in a local `data/` folder (ignored by git).
 **Build an Android APK:**
 
 ```bash
-flet build apk --exclude workouts.db data Screenshots tests .git __pycache__
+flet build apk --clear-cache
 ```
 
-Add `--bundle-id` and `--product` to install a test copy next to your real app without touching its data.
+The app's name, version, ID and the files left out of the APK are all set in `pyproject.toml`.
+For each release raise `version` and `build_number` there (Android only installs an update
+whose build number is higher). The app ID is the app's identity on the phone: changing it installs a
+separate app with its own data. Updates are signed with `~/.android/debug.keystore`, so keep a copy of
+that file somewhere safe or you won't be able to update the app in place.
+
+Back up your workouts regularly with **Export backup** in the app's menu.
 
 **Run the tests:**
 

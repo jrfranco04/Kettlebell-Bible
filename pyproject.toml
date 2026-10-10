@@ -1,0 +1,17 @@
+[project]
+name = "kettlebell-bible"
+version = "2.0.0"
+description = "A personal library of kettlebell and mace workouts, with timers and backup."
+# No dependencies list on purpose: the build installs them from requirements.txt
+
+[tool.flet]
+product = "Kettlebell Bible"
+# The app's permanent identity on the phone. Changing it later installs as a NEW app,
+# and a new app starts with its own empty data (bring workouts over with Export/Import).
+bundle_id = "com.jrfranco.kettlebellbible"
+# Must go up with every release, or Android won't install it over the previous one.
+build_number = 2
+
+[tool.flet.app]
+# Files kept out of the APK (exact paths; no wildcards)
+exclude = ["workouts.db", "data", "Screenshots", "tests", ".git", "__pycache__"]
