@@ -22,9 +22,23 @@ LEGACY_SCHEMA = """
 """
 
 SEED = [
-    {"id": 1, "title": "One", "type": "Complex", "config": "Single KB",
-     "rest": "60 seconds", "content": "Swing\nClean", "rounds": "5 Rounds"},
-    {"title": "Two", "type": "Workout", "config": "Mace", "rest": "", "content": "", "rounds": ""},
+    {
+        "id": 1,
+        "title": "One",
+        "type": "Complex",
+        "config": "Single KB",
+        "rest": "60 seconds",
+        "content": "Swing\nClean",
+        "rounds": "5 Rounds",
+    },
+    {
+        "title": "Two",
+        "type": "Workout",
+        "config": "Mace",
+        "rest": "",
+        "content": "",
+        "rounds": "",
+    },
     {"title": "", "type": "skipped: no title"},
 ]
 
@@ -55,7 +69,9 @@ class TestSetupAndSeeding(DatabaseTestCase):
     def test_fresh_install_seeds_workouts(self):
         db.init_db(self.seed_path)
         workouts = db.fetch_all_workouts()
-        self.assertEqual([w["title"] for w in workouts], ["One", "Two"])  # untitled skipped
+        self.assertEqual(
+            [w["title"] for w in workouts], ["One", "Two"]
+        )  # untitled skipped
         self.assertEqual(workouts[0]["content"], "Swing\nClean")
         self.assertTrue(all(w["uuid"] and w["updated_at"] for w in workouts))
         self.assertEqual(len({w["uuid"] for w in workouts}), 2)
@@ -161,8 +177,14 @@ class TestCrud(DatabaseTestCase):
         db.init_db(self.seed_path)
 
     def new(self, **overrides):
-        data = {"title": "Mine", "type": "Workout", "config": "Single KB",
-                "rest": "90 seconds", "content": "Press", "rounds": "3 Rounds"}
+        data = {
+            "title": "Mine",
+            "type": "Workout",
+            "config": "Single KB",
+            "rest": "90 seconds",
+            "content": "Press",
+            "rounds": "3 Rounds",
+        }
         data.update(overrides)
         return db.add_workouts(data)
 
@@ -182,8 +204,17 @@ class TestCrud(DatabaseTestCase):
     def test_update_changes_fields_and_timestamp_but_not_uuid(self):
         new_id = self.new()
         before = db.fetch_all_workouts()[-1]
-        db.update_workout(new_id, {"title": "Renamed", "type": "EMOM", "config": "Mace",
-                                   "rest": "", "content": "Swing", "rounds": "10"})
+        db.update_workout(
+            new_id,
+            {
+                "title": "Renamed",
+                "type": "EMOM",
+                "config": "Mace",
+                "rest": "",
+                "content": "Swing",
+                "rounds": "10",
+            },
+        )
         after = db.fetch_all_workouts()[-1]
         self.assertEqual(after["title"], "Renamed")
         self.assertEqual(after["config"], "Mace")

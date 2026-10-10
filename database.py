@@ -35,7 +35,8 @@ def _now():
 
 def _migrate_1(conn):
     # Base table (older installs already have it, so only create when missing)
-    conn.execute("""
+    conn.execute(
+        """
         CREATE TABLE IF NOT EXISTS workouts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
@@ -46,7 +47,8 @@ def _migrate_1(conn):
             content TEXT,
             date_created TEXT
         )
-    """)
+    """
+    )
     # Columns for backup/sync: a stable id, a last-modified time, and soft delete
     columns = {row[1] for row in conn.execute("PRAGMA table_info(workouts)")}
     if "uuid" not in columns:
@@ -54,13 +56,21 @@ def _migrate_1(conn):
     if "updated_at" not in columns:
         conn.execute("ALTER TABLE workouts ADD COLUMN updated_at TEXT")
     if "deleted" not in columns:
-        conn.execute("ALTER TABLE workouts ADD COLUMN deleted INTEGER NOT NULL DEFAULT 0")
+        conn.execute(
+            "ALTER TABLE workouts ADD COLUMN deleted INTEGER NOT NULL DEFAULT 0"
+        )
 
     now = _now()
-    for (row_id,) in conn.execute("SELECT id FROM workouts WHERE uuid IS NULL").fetchall():
-        conn.execute("UPDATE workouts SET uuid = ? WHERE id = ?", (str(uuid.uuid4()), row_id))
+    for (row_id,) in conn.execute(
+        "SELECT id FROM workouts WHERE uuid IS NULL"
+    ).fetchall():
+        conn.execute(
+            "UPDATE workouts SET uuid = ? WHERE id = ?", (str(uuid.uuid4()), row_id)
+        )
     conn.execute("UPDATE workouts SET updated_at = ? WHERE updated_at IS NULL", (now,))
-    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_workouts_uuid ON workouts(uuid)")
+    conn.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_workouts_uuid ON workouts(uuid)"
+    )
 
     # Small key/value table for app state (e.g. whether the seed data was loaded)
     conn.execute("CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)")
@@ -140,7 +150,9 @@ def init_db(seed_path=SEED_FILE):
 
 # ---------------------------------- QUERIES ----------------------------------
 
-_SELECT_COLUMNS = "id, uuid, title, type, config, rest, rounds, content, date_created, updated_at"
+_SELECT_COLUMNS = (
+    "id, uuid, title, type, config, rest, rounds, content, date_created, updated_at"
+)
 
 
 def _row_to_dict(row):

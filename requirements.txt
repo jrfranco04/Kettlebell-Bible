@@ -1,0 +1,2 @@
+# Keep in step with the `flet` CLI used for `flet build` (the Flutter client must match)
+flet==0.80.1
