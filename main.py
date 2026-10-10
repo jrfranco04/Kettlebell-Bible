@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import time
 from datetime import date
 
@@ -8,10 +9,14 @@ import database as db
 from backup import BackupError, describe_import, describe_result, load_backup
 from helpers import config_options, filter_workouts, format_time, parse_count
 
+log = logging.getLogger(__name__)
+
 
 # Internal Stopwatch
-def create_stopwatch(page):
+def create_stopwatch(page, keep_awake):
     """Builds the stopwatch UI. Returns (layout, stop) where stop() halts it for good.
+
+    keep_awake(True/False) is called as the stopwatch starts and stops running.
 
     Time comes from the monotonic clock, not from counting ticks, so the display stays
     accurate even if the UI lags or the phone screen turns off for a while.
@@ -56,6 +61,7 @@ def create_stopwatch(page):
             return
         state["started"] = time.monotonic()
         state["task"] = page.run_task(tick_loop)
+        keep_awake(True)
         show_running(True)
         page.update()
 
@@ -65,6 +71,7 @@ def create_stopwatch(page):
         state["elapsed"] += time.monotonic() - state["started"]
         state["started"] = None
         cancel_task()
+        keep_awake(False)
         time_display.value = format_time(current_seconds())
         show_running(False)
         page.update()
@@ -73,6 +80,7 @@ def create_stopwatch(page):
         state["started"] = None
         state["elapsed"] = 0.0
         cancel_task()
+        keep_awake(False)
         time_display.value = "00:00"
         show_running(False)
         page.update()
@@ -81,6 +89,7 @@ def create_stopwatch(page):
         # Called when leaving the workout so nothing keeps running in the background
         state["started"] = None
         cancel_task()
+        keep_awake(False)
 
     # Create Toggle Buttons
     play_btn = ft.IconButton(
@@ -136,6 +145,21 @@ def main(page: ft.Page):
 
     # The stopwatch of the workout currently on screen (stopped when we leave it)
     active_stopwatch_stop = None
+
+    # Keeps the screen on while a timer runs (the app has to hold on to this service)
+    wakelock = ft.Wakelock()
+    wake_state = {"on": False}
+
+    async def apply_wakelock(on):
+        try:
+            await (wakelock.enable() if on else wakelock.disable())
+        except Exception as ex:  # e.g. not supported here; timers still work
+            log.warning("Couldn't change the screen wake lock: %s", ex)
+
+    def keep_awake(on):
+        if wake_state["on"] != on:
+            wake_state["on"] = on
+            page.run_task(apply_wakelock, on)
 
     # Container for our list of workouts
     # Empty column for now
@@ -472,7 +496,7 @@ def main(page: ft.Page):
             rounds_done.value = str(max(0, parse_count(rounds_done.value) + amount))
             rounds_done.update()
 
-        stopwatch_layout, active_stopwatch_stop = create_stopwatch(page)
+        stopwatch_layout, active_stopwatch_stop = create_stopwatch(page, keep_awake)
 
         # Edit/Delete Logic
         def handle_edit(e):
